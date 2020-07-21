@@ -66,7 +66,7 @@ def auto_laudo(result_table, headless=False):
     ).click()  # tela de insercao de resultados
 
     # estou na tela de insercao de resultados
-    for code in tqdm(result_table.index):
+    for code in tqdm(result_table.index, ascii=True):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
             codigo = driver.find_element_by_id(
