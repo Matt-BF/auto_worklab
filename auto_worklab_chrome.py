@@ -93,7 +93,7 @@ def auto_laudo(result_table, headless=False):
             INCONCLUSIVE.append(code)
     driver.quit()
 
-    print(INCONCLUSIVE)
+    print(INCONCLUSIVE, len(INCONCLUSIVE)-2)
 
 
 start = time.time()
