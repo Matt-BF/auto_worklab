@@ -4,7 +4,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import time
 import sys
-
+from tqdm import tqdm
 
 def analyze_csv(plate_csv):
     df = pd.read_csv(plate_csv, skiprows=range(0, 19))
@@ -42,7 +42,7 @@ def auto_laudo(result_table, headless=False):
     options.headless = headless
 
     driver = webdriver.Chrome(
-        executable_path="./chromedriver", chrome_options=options)
+        executable_path="./chromedriver", options=options)
     driver.get("https://app.worklabweb.com.br/index.php")
 
     # estou na tela de login
@@ -66,7 +66,7 @@ def auto_laudo(result_table, headless=False):
     ).click()  # tela de insercao de resultados
 
     # estou na tela de insercao de resultados
-    for code in result_table.index:
+    for code in tqdm(result_table.index):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
             codigo = driver.find_element_by_id(
