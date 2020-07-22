@@ -5,9 +5,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 LABS = {
-    "2": ("NAS", "03"),
-    "3": ("CM", "03"),
-    "4": ("IBA", "03"),
     "5": ("ANC", "03"),
     "6": ("LTE", "03"),
     "9": ("ANA", "04"),
@@ -53,7 +50,7 @@ for code, tup in LABS.items():
         "/html/body/form/div/div[1]/div[3]/div[1]/div/a[2]"
     ).click()
 
-    time.sleep(3)
+    time.sleep(1)
 
     lab = driver.find_element_by_xpath('//*[@id="unidade"]')
     lab.send_keys(tup[0])
@@ -71,7 +68,7 @@ for code, tup in LABS.items():
         convenio = driver.find_element_by_xpath('//*[@id="convenio"]')
         convenio.send_keys("01")
         convenio.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(1.5)
         driver.find_element_by_xpath(
             "/html/body/form/div/div/div[2]/div[2]/div[2]/div/div[1]/div[2]/table/tbody/tr[1]/td[7]/a[1]"
         ).click()

@@ -16,7 +16,7 @@ def analyze_csv(plate_csv):
 
     # positive samples
     pos = a[(a["N1"] < 40) & (a["N2"] < 40)]
-    pos.loc[:, "Result"] = "POSITIVO"
+    pos["Result"] = "POSITIVO"
 
     # negative samples
     neg_null = a[(pd.isnull(a["N1"]) & (pd.isnull(a["N2"])) & (a["RP"] < 40))]
@@ -24,12 +24,12 @@ def analyze_csv(plate_csv):
     neg_N2 = a[(pd.isnull(a["N1"]) & (a["N2"] > 40) & (a["RP"] < 40))]
     neg_N1_N2 = a[(a["N1"] > 40) & (a["N2"] > 40) & (a["RP"] < 40)]
     neg = pd.concat([neg_null, neg_N1, neg_N2, neg_N1_N2])
-    neg.loc[:, "Result"] = "NEGATIVO"
+    neg["Result"] = "NEGATIVO"
 
     # add inconclusive
     pos_neg = pd.concat([pos, neg])
     inc = a.loc[~a.index.isin(pos_neg.index)]
-    inc.loc[:, "Result"] = "INCONCLUSIVO"
+    inc["Result"] = "INCONCLUSIVO"
 
     consolidated = pd.concat([pos, neg, inc]).sort_values(by="Sample")
 
