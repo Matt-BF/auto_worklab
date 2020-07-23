@@ -5,7 +5,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 LABS = {
-    "8": ("CAE", "03"),
     "10": ("DMS", "02"),
     "13": ("REB", "04"),
     "14": ("AND", "05"),
