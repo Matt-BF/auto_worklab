@@ -5,20 +5,15 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 LABS = {
-    "5": ("ANC", "03"),
-    "6": ("LTE", "03"),
-    "9": ("ANA", "04"),
-    "10": ("CAE", "03"),
-    "11": ("LAB", "05"),
-    "12": ("DMS", "02"),
-    "15": ("REB", "04"),
-    "17": ("AND", "05"),
-    "18": ("SM", "06"),
-    "19": ("CIT", "04"),
+    "8": ("CAE", "03"),
+    "10": ("DMS", "02"),
+    "13": ("REB", "04"),
+    "14": ("AND", "05"),
+    "15": ("SM", "06"),
 }
 
 
-for code, tup in LABS.items():
+def fix(key_code, tup):
     driver = webdriver.Chrome(executable_path="./chromedriver")
     driver.get("https://app.worklabweb.com.br/index.php")
 
@@ -40,7 +35,7 @@ for code, tup in LABS.items():
     # tela home
     # trocar unidade
     driver.find_element_by_xpath(
-        f"/html/body/form/div/div[1]/div[1]/div/div[2]/select/option[{code}]"
+        f"/html/body/form/div/div[1]/div[1]/div/div[2]/select/option[{key_code}]"
     ).click()
 
     time.sleep(1)
@@ -69,9 +64,23 @@ for code, tup in LABS.items():
         convenio.send_keys("01")
         convenio.send_keys(Keys.ENTER)
         time.sleep(1.5)
-        driver.find_element_by_xpath(
-            "/html/body/form/div/div/div[2]/div[2]/div[2]/div/div[1]/div[2]/table/tbody/tr[1]/td[7]/a[1]"
-        ).click()
+
+        ### try block for editing client (sometimes doesnt work) ###
+        # if it doesnt work twice, check if table empty, if empty, go to next lab
+        try:
+            driver.find_element_by_xpath(
+                "/html/body/form/div/div/div[2]/div[2]/div[2]/div/div[1]/div[2]/table/tbody/tr[1]/td[7]/a[1]"
+            ).click()
+        except Exception:
+            try:
+                time.sleep(2)
+                driver.find_element_by_xpath(
+                    "/html/body/form/div/div/div[2]/div[2]/div[2]/div/div[1]/div[2]/table/tbody/tr[1]/td[7]/a[1]"
+                ).click()
+            except Exception:
+                if driver.find_element_by_class_name("dataTables_empty"):
+                    driver.quit()
+
         convenio = driver.find_element_by_id("tbConvenio")
         convenio.send_keys(Keys.CONTROL + "a")
         convenio.send_keys(Keys.DELETE)
@@ -80,4 +89,6 @@ for code, tup in LABS.items():
 
         driver.find_element_by_id("confirmapac").click()
 
-    driver.quit()
+
+for key, tup in LABS.items():
+    fix(key, tup)
