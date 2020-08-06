@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import pandas as pd
-
+import sys
 
 def create_xml(csv, company):
     df = pd.read_csv(csv)
@@ -14,7 +14,7 @@ def create_xml(csv, company):
     lote = root.find("Lote")
     cod_lote_lab = lote[1]
     data_lote = lote[2]
-    cod_lote_lab.text = f"{datetime.strftime(today, '%Y%m%d')}_{company}"
+    cod_lote_lab.text = f"{datetime.strftime(today, '%Y%m%d')}_{company.split('.')[0]}"
     data_lote.text = datetime.strftime(today, "%Y-%m-%d")
 
     # adicionar pedido e pacientes
@@ -28,7 +28,7 @@ def create_xml(csv, company):
         paciente = ET.SubElement(pedido, "Paciente")
         # nome
         nome = ET.SubElement(paciente, "Nome")
-        nome.text = df.loc[idx, "NOME"].strip()
+        nome.text = df.loc[idx, "NOME"].strip().capitalize()
         # sexo
         sexo = ET.SubElement(paciente, "Sexo")
         sexo.text = df.loc[idx, "SEXO"].strip()
@@ -45,7 +45,7 @@ def create_xml(csv, company):
             cod_exame = ET.SubElement(exame, "CodExmApoio")
             cod_exame.text = exam
 
-    tree.write("teste_edit.xml")
+    tree.write(sys.argv[1] + ".xml")
 
 
-create_xml("sabic.csv", "SABIC")
+create_xml(sys.argv[1], sys.argv[1].split("."[0]))
