@@ -7,7 +7,6 @@ import sys
 def laudos_codigo(code_file):
     with open(code_file) as f:
         codes = [line.strip() for line in f]
-
     driver = webdriver.Firefox(executable_path="./geckodriver")
     driver.get("https://app.worklabweb.com.br/index.php")
 
@@ -32,9 +31,7 @@ def laudos_codigo(code_file):
     ).click()  # link do laudos por codigo
 
     # estou na tela de laudos por codigo
-    for code, :
+    driver.quit()
 
 
-laudos_codigo()
-
-print(f"Executado em {round(time.time()-start)} segundos")
+laudos_codigo(sys.argv[1])
