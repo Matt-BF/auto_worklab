@@ -5,6 +5,10 @@ from selenium.webdriver.chrome.options import Options
 import time
 import sys
 from tqdm import tqdm
+import warnings
+
+warnings.filterwarnings(action='ignore')
+
 
 def analyze_csv(plate_csv):
     df = pd.read_csv(plate_csv, skiprows=range(0, 19))
@@ -36,7 +40,7 @@ def analyze_csv(plate_csv):
     return consolidated
 
 
-def auto_laudo(result_table, headless=False):
+def auto_laudo(result_table, headless=False, auto_send=True):
     INCONCLUSIVE = []
     options = Options()
     options.headless = headless
@@ -56,8 +60,8 @@ def auto_laudo(result_table, headless=False):
         "/html/body/div/div/div[2]/div[1]/form/div[5]/button"
     )
 
-    user_box.send_keys("875bruna")
-    pass_box.send_keys("bruninha1234")
+    user_box.send_keys("875mateus")
+    pass_box.send_keys("Vq6Jq3wnk3GeCid")
     submit.click()
 
     # estou na tela home
@@ -66,6 +70,7 @@ def auto_laudo(result_table, headless=False):
     ).click()  # tela de insercao de resultados
 
     # estou na tela de insercao de resultados
+    print("LAUDANDO AMOSTRAS", "\n")
     for code in tqdm(result_table.index, ascii=True):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
@@ -91,6 +96,27 @@ def auto_laudo(result_table, headless=False):
         # salvar os inconclusivos para ver na mao
         else:
             INCONCLUSIVE.append(code)
+
+    if auto_send:
+        print("CONFERINDO RESULTADOS", "\n")
+        driver.get("https://app.worklabweb.com.br/welcome.php")
+        driver.find_element_by_xpath(
+            "/html/body/form/div/div[1]/div[3]/div[2]/div/a[2]").click()
+
+        for code in tqdm(result_table.index, ascii=True):
+            if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
+                # abrir pagina do paciente pelo codigo
+                codigo = driver.find_element_by_id(
+                    "tbCodigoPaciente")  # celula de codigo
+                # apagar o que tiver na celula e escrever o codigo
+                codigo.send_keys(Keys.CONTROL + "a")
+                codigo.send_keys(Keys.DELETE)
+                codigo.send_keys(code)
+                codigo.send_keys(Keys.ENTER)
+
+                driver.get_element_by_id("btExame1").click()
+                codigo.send_keys(Keys.ENTER)
+
     driver.quit()
 
     print(INCONCLUSIVE, len(INCONCLUSIVE)-2)
@@ -100,6 +126,7 @@ start = time.time()
 table = analyze_csv(sys.argv[1])
 try:
     auto_laudo(table)
+
 except Exception:
     auto_laudo(table, True)
 
