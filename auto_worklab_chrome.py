@@ -114,7 +114,7 @@ def auto_laudo(result_table, headless=False, auto_send=True):
                 codigo.send_keys(code)
                 codigo.send_keys(Keys.ENTER)
 
-                driver.get_element_by_id("btExame1").click()
+                driver.find_element_by_id("btExame1").click()
                 codigo.send_keys(Keys.ENTER)
 
     driver.quit()
