@@ -11,6 +11,7 @@ warnings.filterwarnings(action='ignore')
 
 
 def analyze_csv(plate_csv):
+    print("PREPARANDO A PLACA")
     df = pd.read_csv(plate_csv, skiprows=range(0, 19))
     df = df.set_index("Sample")
     df = df[["Well", "Target", "Cq"]]
@@ -70,7 +71,7 @@ def auto_laudo(result_table, headless=False, auto_send=True):
     ).click()  # tela de insercao de resultados
 
     # estou na tela de insercao de resultados
-    print("LAUDANDO AMOSTRAS", "\n")
+    print("\n", "LAUDANDO AMOSTRAS", "\n")
     for code in tqdm(result_table.index, ascii=True):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
@@ -98,7 +99,7 @@ def auto_laudo(result_table, headless=False, auto_send=True):
             INCONCLUSIVE.append(code)
 
     if auto_send:
-        print("CONFERINDO RESULTADOS", "\n")
+        print("\n", "CONFERINDO RESULTADOS", "\n")
         driver.find_element_by_xpath("/html/body/div/div/div[1]/a").click()
         driver.find_element_by_xpath(
             "/html/body/form/div/div[1]/div[3]/div[2]/div/a[2]").click()
