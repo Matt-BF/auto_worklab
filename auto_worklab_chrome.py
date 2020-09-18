@@ -99,7 +99,7 @@ def auto_laudo(result_table, headless=False, auto_send=True):
 
     if auto_send:
         print("CONFERINDO RESULTADOS", "\n")
-        driver.find_element_by_xpath("/html/body/div/div/div[1]/a/img").click()
+        driver.find_element_by_xpath("/html/body/div/div/div[1]/a").click()
         driver.find_element_by_xpath(
             "/html/body/form/div/div[1]/div[3]/div[2]/div/a[2]").click()
 
