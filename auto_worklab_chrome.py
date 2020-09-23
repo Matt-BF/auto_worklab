@@ -3,21 +3,19 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import time
-import sys
+import argparse
 from tqdm import tqdm
 import warnings
 
-warnings.filterwarnings(action='ignore')
+warnings.filterwarnings(action="ignore")
 
 
 def analyze_csv(plate_csv):
-    print("PREPARANDO A PLACA")
     df = pd.read_csv(plate_csv, skiprows=range(0, 19))
     df = df.set_index("Sample")
     df = df[["Well", "Target", "Cq"]]
 
-    a = pd.pivot_table(df, values="Cq", index="Sample",
-                       columns="Target", dropna=False)
+    a = pd.pivot_table(df, values="Cq", index="Sample", columns="Target", dropna=False)
 
     # positive samples
     pos = a[(a["N1"] < 40) & (a["N2"] < 40)]
@@ -41,13 +39,12 @@ def analyze_csv(plate_csv):
     return consolidated
 
 
-def auto_laudo(result_table, headless=False, auto_send=True):
+def auto_laudo(result_table, headless=False, validate=True):
     INCONCLUSIVE = []
     options = Options()
     options.headless = headless
 
-    driver = webdriver.Chrome(
-        executable_path="./chromedriver", options=options)
+    driver = webdriver.Chrome(executable_path="./chromedriver", options=options)
     driver.get("https://app.worklabweb.com.br/index.php")
 
     # estou na tela de login
@@ -75,8 +72,7 @@ def auto_laudo(result_table, headless=False, auto_send=True):
     for code in tqdm(result_table.index, ascii=True):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
-            codigo = driver.find_element_by_id(
-                "tbCodigoPaciente")  # celula de codigo
+            codigo = driver.find_element_by_id("tbCodigoPaciente")  # celula de codigo
             # apagar o que tiver na celula e escrever o codigo
             codigo.send_keys(Keys.CONTROL + "a")
             codigo.send_keys(Keys.DELETE)
@@ -98,17 +94,19 @@ def auto_laudo(result_table, headless=False, auto_send=True):
         else:
             INCONCLUSIVE.append(code)
 
-    if auto_send:
+    if validate:
         print("\n", "CONFERINDO RESULTADOS", "\n")
         driver.find_element_by_xpath("/html/body/div/div/div[1]/a/img").click()
         driver.find_element_by_xpath(
-            "/html/body/form/div/div[1]/div[3]/div[2]/div/a[2]").click()
+            "/html/body/form/div/div[1]/div[3]/div[2]/div/a[2]"
+        ).click()
 
         for code in tqdm(result_table.index, ascii=True):
             if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
                 # abrir pagina do paciente pelo codigo
                 codigo = driver.find_element_by_id(
-                    "tbCodigoPaciente")  # celula de codigo
+                    "tbCodigoPaciente"
+                )  # celula de codigo
                 # apagar o que tiver na celula e escrever o codigo
                 codigo.send_keys(Keys.CONTROL + "a")
                 codigo.send_keys(Keys.DELETE)
@@ -120,15 +118,27 @@ def auto_laudo(result_table, headless=False, auto_send=True):
 
     driver.quit()
 
-    print(INCONCLUSIVE, len(INCONCLUSIVE)-2)
+    print(INCONCLUSIVE, len(INCONCLUSIVE) - 2)
 
 
-start = time.time()
-table = analyze_csv(sys.argv[1])
-try:
-    auto_laudo(table)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("plate_file", help="Arquivo csv do programa CFX Maestro")
+    parser.add_argument(
+        "--validate", default=True, help="Conferir os resultados automaticamente"
+    )
+    args = parser.parse_args()
 
-except Exception:
-    auto_laudo(table, True)
+    start = time.time()
 
-print(f"Executado em {round(time.time()-start)} segundos")
+    print("PREPARANDO A PLACA", "\n")
+    table = analyze_csv(args.plate_file)
+
+    print("LAUDANDO AMOSTRAS", "\n")
+    try:
+        auto_laudo(table, headless=False, validate=args.validate)
+
+    except Exception:
+        auto_laudo(table, headless=True, validate=args.validate)
+
+    print(f"Executado em {round(time.time()-start)} segundos")
