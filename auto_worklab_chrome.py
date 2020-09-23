@@ -125,7 +125,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("plate_file", help="Arquivo csv do programa CFX Maestro")
     parser.add_argument(
-        "--validate", default=True, help="Conferir os resultados automaticamente"
+        "--validate",
+        default=True,
+        help="[True, False] Conferir os resultados automaticamente. Default=True",
     )
     args = parser.parse_args()
 
