@@ -127,6 +127,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--validate",
         default=True,
+        choices=[True, False],
         help="[True, False] Conferir os resultados automaticamente. Default=True",
     )
     args = parser.parse_args()
