@@ -95,7 +95,7 @@ def auto_laudo(result_table, headless=False, validate=True):
         else:
             INCONCLUSIVE.append(code)
 
-    if validate:
+    if bool(validate):
         print("\n", "CONFERINDO RESULTADOS", "\n")
         driver.find_element_by_xpath("/html/body/div/div/div[1]/a/img").click()
         driver.find_element_by_xpath(
