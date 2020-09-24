@@ -81,13 +81,14 @@ def auto_laudo(result_table, headless=False, validate=True):
 
             # hora de laudar
             driver.find_element_by_id("btExame1").click()  # botao do exame
+            resultado = driver.find_element_by_id("tbResultado4492")
+            resultado.send_keys(Keys.CONTROL + "a")
+            resultado.send_keys(Keys.DELETE)
             if result_table.loc[code, "Result"] == "POSITIVO":
-                resultado = driver.find_element_by_id("tbResultado4492")
-                resultado.send_keys(Keys.CONTROL + "a")
-                resultado.send_keys(Keys.DELETE)
                 resultado.send_keys("P")
                 driver.find_element_by_id("btSalvar").click()
             else:
+                resultado.send_keys("N")
                 driver.find_element_by_id("btSalvar").click()
 
         # salvar os inconclusivos para ver na mao
@@ -127,7 +128,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--validate",
         default=True,
-        choices=[True, False],
         help="Conferir os resultados automaticamente. Default=True",
     )
     args = parser.parse_args()
