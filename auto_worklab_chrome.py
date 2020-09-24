@@ -68,7 +68,6 @@ def auto_laudo(result_table, headless=False, validate=True):
     ).click()  # tela de insercao de resultados
 
     # estou na tela de insercao de resultados
-    print("\n", "LAUDANDO AMOSTRAS", "\n")
     for code in tqdm(result_table.index, ascii=True):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
@@ -95,7 +94,7 @@ def auto_laudo(result_table, headless=False, validate=True):
         else:
             INCONCLUSIVE.append(code)
 
-    if bool(validate):
+    if validate == "True":
         print("\n", "CONFERINDO RESULTADOS", "\n")
         driver.find_element_by_xpath("/html/body/div/div/div[1]/a/img").click()
         driver.find_element_by_xpath(
@@ -136,7 +135,6 @@ if __name__ == "__main__":
 
     print("PREPARANDO A PLACA", "\n")
     table = analyze_csv(args.plate_file)
-
     print("LAUDANDO AMOSTRAS", "\n")
     try:
         auto_laudo(table, headless=False, validate=args.validate)
