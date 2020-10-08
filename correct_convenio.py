@@ -5,14 +5,28 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 LABS = {
-    "10": ("DMS", "02"),
-    "13": ("REB", "04"),
-    "14": ("AND", "05"),
-    "15": ("SM", "06"),
+    # "ALP": "07",
+    # "ANC": "03",
+    # "BIC": "07",
+    # "BIL": "07",
+    "CAE": "03",
+    "IBA": "03",
+    "DLT": "07",
+    "LAB": "05",
+    "LME": "07",
+    "LTE": "03",
+    "NAS": "03",
+    "REB": "04",
+    "DMS": "02",
+    "AND": "05",
+    "SM": "06",
+    "CIT": "04",
+    "TRA": "07",
+    "MUE": "07",
 }
 
 
-def fix(key_code, tup):
+def fix(code, cvn):
     driver = webdriver.Chrome(executable_path="./chromedriver")
     driver.get("https://app.worklabweb.com.br/index.php")
 
@@ -32,23 +46,25 @@ def fix(key_code, tup):
     submit.click()
 
     # tela home
-    # trocar unidade
-    driver.find_element_by_xpath(
-        f"/html/body/form/div/div[1]/div[1]/div/div[2]/select/option[{key_code}]"
-    ).click()
-
-    time.sleep(1)
-    driver.switch_to.alert.accept()
-
     driver.find_element_by_xpath(
         "/html/body/form/div/div[1]/div[3]/div[1]/div/a[2]"
     ).click()
 
+    driver.find_element_by_xpath(
+        '//*[@id="guidely-guide-1"]/div/div[2]/button'
+    ).click()  # remover popup
+
     time.sleep(1)
 
+    driver.find_element_by_xpath(
+        "/html/body/form/div/div/div[2]/div[2]/div[2]/div/div[1]/div[1]/div/table/thead[2]/tr/td[7]/select/option[2]"
+    ).click()
+
     lab = driver.find_element_by_xpath('//*[@id="unidade"]')
-    lab.send_keys(tup[0])
-    lab.send_keys(Keys.ENTER)
+    lab.send_keys(code)
+    conv = driver.find_element_by_xpath('//*[@id="convenio"]')
+    conv.send_keys(cnv)
+    conv.send_keys(Keys.ENTER)
 
     num_patients = (
         driver.find_element_by_xpath('//*[@id="my-table_info"]')
@@ -57,12 +73,14 @@ def fix(key_code, tup):
     )
     for i in range(int(num_patients) + 1):  # loop for all patients
         if i != 0:
+            driver.find_element_by_xpath(
+                "/html/body/form/div/div/div[2]/div[2]/div[2]/div/div[1]/div[1]/div/table/thead[2]/tr/td[7]/select/option[2]"
+            ).click()
             lab = driver.find_element_by_xpath('//*[@id="unidade"]')
-            lab.send_keys(tup[0])
-        convenio = driver.find_element_by_xpath('//*[@id="convenio"]')
-        convenio.send_keys("01")
-        convenio.send_keys(Keys.ENTER)
-        time.sleep(1.5)
+            lab.send_keys(code)
+            conv = driver.find_element_by_xpath('//*[@id="convenio"]')
+            conv.send_keys(cnv)
+            conv.send_keys(Keys.ENTER)
 
         ### try block for editing client (sometimes doesnt work) ###
         # if it doesnt work twice, check if table empty, if empty, go to next lab
@@ -79,15 +97,16 @@ def fix(key_code, tup):
             except Exception:
                 if driver.find_element_by_class_name("dataTables_empty"):
                     driver.quit()
+                    return "Finished"
 
         convenio = driver.find_element_by_id("tbConvenio")
         convenio.send_keys(Keys.CONTROL + "a")
         convenio.send_keys(Keys.DELETE)
-        convenio.send_keys(tup[1])
+        convenio.send_keys(code)
         convenio.send_keys(Keys.ENTER)
 
         driver.find_element_by_id("confirmapac").click()
 
 
-for key, tup in LABS.items():
-    fix(key, tup)
+for lab, cnv in LABS.items():
+    fix(lab, cnv)
