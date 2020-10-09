@@ -3,16 +3,19 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import time
-import sys
+import argparse
 from tqdm import tqdm
+import warnings
+
+warnings.filterwarnings(action="ignore")
+
 
 def analyze_csv(plate_csv):
     df = pd.read_csv(plate_csv, skiprows=range(0, 19))
     df = df.set_index("Sample")
     df = df[["Well", "Target", "Cq"]]
 
-    a = pd.pivot_table(df, values="Cq", index="Sample",
-                       columns="Target", dropna=False)
+    a = pd.pivot_table(df, values="Cq", index="Sample", columns="Target", dropna=False)
 
     # positive samples
     pos = a[(a["N1"] < 40) & (a["N2"] < 40)]
@@ -36,13 +39,12 @@ def analyze_csv(plate_csv):
     return consolidated
 
 
-def auto_laudo(result_table, headless=False):
+def auto_laudo(result_table, headless=False, validate=True):
     INCONCLUSIVE = []
     options = Options()
     options.headless = headless
 
-    driver = webdriver.Chrome(
-        executable_path="./chromedriver", options=options)
+    driver = webdriver.Chrome(executable_path="./chromedriver", options=options)
     driver.get("https://app.worklabweb.com.br/index.php")
 
     # estou na tela de login
@@ -56,8 +58,8 @@ def auto_laudo(result_table, headless=False):
         "/html/body/div/div/div[2]/div[1]/form/div[5]/button"
     )
 
-    user_box.send_keys("875bruna")
-    pass_box.send_keys("bruninha1234")
+    user_box.send_keys("875mateus")
+    pass_box.send_keys("Vq6Jq3wnk3GeCid")
     submit.click()
 
     # estou na tela home
@@ -69,8 +71,7 @@ def auto_laudo(result_table, headless=False):
     for code in tqdm(result_table.index, ascii=True):
         if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
             # abrir pagina do paciente pelo codigo
-            codigo = driver.find_element_by_id(
-                "tbCodigoPaciente")  # celula de codigo
+            codigo = driver.find_element_by_id("tbCodigoPaciente")  # celula de codigo
             # apagar o que tiver na celula e escrever o codigo
             codigo.send_keys(Keys.CONTROL + "a")
             codigo.send_keys(Keys.DELETE)
@@ -79,28 +80,66 @@ def auto_laudo(result_table, headless=False):
 
             # hora de laudar
             driver.find_element_by_id("btExame1").click()  # botao do exame
+            resultado = driver.find_element_by_id("tbResultado4492")
+            resultado.send_keys(Keys.CONTROL + "a")
+            resultado.send_keys(Keys.DELETE)
             if result_table.loc[code, "Result"] == "POSITIVO":
-                resultado = driver.find_element_by_id("tbResultado4492")
-                resultado.send_keys(Keys.CONTROL + "a")
-                resultado.send_keys(Keys.DELETE)
                 resultado.send_keys("P")
                 driver.find_element_by_id("btSalvar").click()
             else:
+                resultado.send_keys("N")
                 driver.find_element_by_id("btSalvar").click()
 
         # salvar os inconclusivos para ver na mao
         else:
             INCONCLUSIVE.append(code)
+
+    if validate == "True":
+        print("\n", "CONFERINDO RESULTADOS", "\n")
+        driver.find_element_by_xpath("/html/body/div/div/div[1]/a/img").click()
+        driver.find_element_by_xpath(
+            "/html/body/form/div/div[1]/div[3]/div[2]/div/a[2]"
+        ).click()
+
+        for code in tqdm(result_table.index, ascii=True):
+            if result_table.loc[code, "Result"] != "INCONCLUSIVO" and code.isdigit():
+                # abrir pagina do paciente pelo codigo
+                codigo = driver.find_element_by_id(
+                    "tbCodigoPaciente"
+                )  # celula de codigo
+                # apagar o que tiver na celula e escrever o codigo
+                codigo.send_keys(Keys.CONTROL + "a")
+                codigo.send_keys(Keys.DELETE)
+                codigo.send_keys(code)
+                codigo.send_keys(Keys.ENTER)
+
+                driver.find_element_by_id("btExame1").click()
+                driver.find_element_by_id("btSalvar").click()
+
     driver.quit()
 
-    print(INCONCLUSIVE, len(INCONCLUSIVE)-2)
+    print(INCONCLUSIVE, len(INCONCLUSIVE) - 2)
 
 
-start = time.time()
-table = analyze_csv(sys.argv[1])
-try:
-    auto_laudo(table)
-except Exception:
-    auto_laudo(table, True)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("plate_file", help="Arquivo csv do programa CFX Maestro")
+    parser.add_argument(
+        "--validate",
+        default="True",
+        help="Conferir os resultados automaticamente. Default=True",
+    )
+    args = parser.parse_args()
 
-print(f"Executado em {round(time.time()-start)} segundos")
+    start = time.time()
+
+    print("PREPARANDO A PLACA", "\n")
+    table = analyze_csv(args.plate_file)
+    print("LAUDANDO AMOSTRAS", "\n")
+    try:
+        auto_laudo(table, headless=False, validate=args.validate)
+
+    except Exception:
+        auto_laudo(table, headless=True, validate=args.validate)
+
+    print(f"Executado em {round(time.time()-start)} segundos")
