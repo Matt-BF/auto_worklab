@@ -80,7 +80,10 @@ def auto_laudo(result_table, headless=False, validate=True):
 
             # hora de laudar
             driver.find_element_by_id("btExame1").click()  # botao do exame
-            resultado = driver.find_element_by_id("tbResultado4492")
+            try:
+                resultado = driver.find_element_by_id("tbResultado4492")
+            except Exception:
+                resultado = driver.find_element_by_id("tbResultado4496")
             resultado.send_keys(Keys.CONTROL + "a")
             resultado.send_keys(Keys.DELETE)
             if result_table.loc[code, "Result"] == "POSITIVO":
@@ -90,6 +93,7 @@ def auto_laudo(result_table, headless=False, validate=True):
                 resultado.send_keys("N")
                 driver.find_element_by_id("btSalvar").click()
 
+            
         # salvar os inconclusivos para ver na mao
         else:
             INCONCLUSIVE.append(code)
